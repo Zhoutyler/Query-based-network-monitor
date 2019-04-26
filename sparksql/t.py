@@ -2,10 +2,10 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import *
 import datetime
-sc = SparkContext("local[2]", "myapp")
+sc = SparkContext("local[5]", "myapp")
 sc.setLogLevel("ERROR")
 ssc = StreamingContext(sc, 30)
-ssc.checkpoint("checkpoint_TwitterApp")
+ssc.checkpoint("checkpoint_App")
 
 
 def getSparkSessionInstance(sparkConf):
