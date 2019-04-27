@@ -133,7 +133,65 @@ def top_k_ip(time, rdd, k, T):
         pass
 
 
-words.foreachRDD(lambda x: top_k_protocols(datetime.datetime.now(),x,20,5))
+#  List all protocols that are consuming more than X times the standard deviation of
+# the average traffic consumption of all protocols over the last T time units.
+def protocols_x_more_than_stddev(time, rdd, X, T):
+    """
+
+    :param X:
+    :param T:
+    :return:
+    """
+    print("\n========= %s =========" % str(time))
+    try:
+        spark = getSparkSessionInstance(rdd.context.getConf())
+        rowRdd = rdd.map(lambda p: p.split("/"))
+        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
+                                          protocol=p[1], portNum=p[2], src_ip=p[3], dest_ip=p[4], data_size=p[5]))
+        wordsDataFrame = spark.createDataFrame(rowRdd)
+        wordsDataFrame.createOrReplaceTempView("services")
+
+        # q = "select CAST(data_size as DOUBLE) from services"
+
+        q = "SELECT b.protocol from " \
+            "(select protocol, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by protocol) as b " \
+            "where b.bw > (select stddev(data_size) from services)*"+str(X)
+
+        wordCountsDataFrame = spark.sql(q)
+        wordCountsDataFrame.show()
+    except:
+        pass
+
+
+#  List all IP addresses that are consuming more than X times the standard deviation
+# of the average traffic consumption of all IP addresses over the last T time units.
+def ip_x_more_than_sd(time, rdd, X, T):
+    """
+
+    :param T:
+    :return:
+    """
+    print("\n========= %s =========" % str(time))
+    try:
+        spark = getSparkSessionInstance(rdd.context.getConf())
+        rowRdd = rdd.map(lambda p: p.split("/"))
+        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
+                                          protocol=p[1], portNum=p[2], src_ip=p[3], dest_ip=p[4], data_size=p[5]))
+        wordsDataFrame = spark.createDataFrame(rowRdd)
+        wordsDataFrame.createOrReplaceTempView("services")
+
+        q = "SELECT b.src_ip from " \
+            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by src_ip) as b " \
+            "where b.bw > (select stddev(data_size) from services)*" + str(X)
+
+        wordCountsDataFrame = spark.sql(q)
+        wordCountsDataFrame.show()
+    except:
+        pass
+
+
+
+words.foreachRDD(lambda x: protocols_x_more_than_stddev(datetime.datetime.now(), x, 2, 20))
 ssc.start()
 ssc.awaitTermination()
 
