@@ -165,7 +165,7 @@ def protocols_x_more_than_stddev(time, rdd, X, T):
 
 #  List all IP addresses that are consuming more than X times the standard deviation
 # of the average traffic consumption of all IP addresses over the last T time units.
-def ip_x_more_than_sd(time, rdd, X, T):
+def ip_x_more_than_stddev(time, rdd, X, T):
     """
 
     :param T:
