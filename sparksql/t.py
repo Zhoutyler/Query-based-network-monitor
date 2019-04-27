@@ -16,11 +16,9 @@ def getSparkSessionInstance(sparkConf):
             .getOrCreate()
     return globals()["sparkSessionSingletonInstance"]
 
-
-# DataFrame operations inside your streaming program
-
 words = ssc.socketTextStream("localhost", 9999)
 
+#  List protocols that are consuming more than H percent of the total external bandwidth over the last T time units.
 def top_protocol_H_T(time, rdd, H, T):
     """
     :param H:
@@ -65,8 +63,7 @@ def top_k_protocols(time, rdd, k, T):
     :param T:
     :return:
     """
-    print("\n")
-    print("========= %s =========" % str(time))
+    print("\n========= %s =========" % str(time))
     try:
         spark = getSparkSessionInstance(rdd.context.getConf())
         rowRdd = rdd.map(lambda p: p.split("/"))
@@ -77,6 +74,58 @@ def top_k_protocols(time, rdd, k, T):
 
         q = "SELECT b.protocol, b.t from " \
             "(select protocol, count(protocol) as t from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by protocol) as b order by b.t desc limit " + str(k)
+
+        wordCountsDataFrame = spark.sql(q)
+        wordCountsDataFrame.show()
+    except:
+        pass
+
+
+# List IP addresses that are consuming more than H percent of the total external
+# bandwidth over the last T time units.
+def top_ip_addr_H_T(time, rdd, H, T):
+    """
+
+    :param H:
+    :param T:
+    :return:
+    """
+    print("\n========= %s =========" % str(time))
+    try:
+        spark = getSparkSessionInstance(rdd.context.getConf())
+        rowRdd = rdd.map(lambda p: p.split("/"))
+        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
+                                          protocol=p[1], portNum=p[2], src_ip=p[3], dest_ip=p[4], data_size=p[5]))
+        wordsDataFrame = spark.createDataFrame(rowRdd)
+        wordsDataFrame.createOrReplaceTempView("services")
+
+        q = "SELECT b.src_ip from " \
+            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by src_ip) as b " \
+            "where b.bw > (select sum(data_size) from services)/"+str(H)
+
+        wordCountsDataFrame = spark.sql(q)
+        wordCountsDataFrame.show()
+    except:
+        pass
+
+#  List the top-k most resource intensive IP addresses over the last T time units.
+def top_k_ip(time, rdd, k, T):
+    """
+
+    :param T:
+    :return:
+    """
+    print("\n========= %s =========" % str(time))
+    try:
+        spark = getSparkSessionInstance(rdd.context.getConf())
+        rowRdd = rdd.map(lambda p: p.split("/"))
+        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
+                                          protocol=p[1], portNum=p[2], src_ip=p[3], dest_ip=p[4], data_size=p[5]))
+        wordsDataFrame = spark.createDataFrame(rowRdd)
+        wordsDataFrame.createOrReplaceTempView("services")
+
+        q = "SELECT b.src_ip, b.t from " \
+            "(select src_ip, count(src_ip) as t from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by src_ip) as b order by b.t desc limit " + str(k)
 
         wordCountsDataFrame = spark.sql(q)
         wordCountsDataFrame.show()
