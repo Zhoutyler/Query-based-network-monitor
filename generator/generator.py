@@ -2,7 +2,7 @@ from socket import *
 import datetime
 import random
 import time
-
+import json
 
 def ip_addr_generator():
     x = [str(random.randrange(1, 255)), str(random.randrange(0, 255)),
@@ -20,34 +20,28 @@ def data_size_generator():
 
 def generate():
     services = ["http", "tcp", "smtp", "pop3", "imap", "mysql", "ftp", "dns", "udp", "bolt"]
-    msg1 = ["timestamp:"+str(datetime.datetime.now())
+    msg1 = [str(datetime.datetime.now())
         , services[random.randrange(0, len(services))]
         , port_num_generator()
-        , "src_ip:" + ip_addr_generator()
-        , "dest_ip:127.0.0.1"
-        , "data_size:" + data_size_generator()]
+        , ip_addr_generator()
+        , "127.0.0.1"
+        , data_size_generator()]
 
     return "/".join(msg1)
 
 
 servername = 'localhost'
-serverPort = 9009
+serverPort = 9999
 sock = socket(AF_INET, SOCK_STREAM)
-print ("Running at: %s" % serverPort)
-sock.bind((servername, serverPort))
-sock.listen()
+sock.bind(("localhost", 9999))
+sock.listen(1)
 
-con, con_addr = sock.accept()
-print ("accept: %s:%s" % (con_addr[0], con_addr[1]))
 while True:
-    msg = generate()
-    print("sending: ", msg)
-
-    con.send((msg + '\n').encode())
-    time.sleep(0.1)
-    '''
-    reply = sock.recv(1024)
-    print('From Server:', reply)
-    '''
-
+    print("start")
+    conn, addr = sock.accept()
+    while True:
+        time.sleep(1)
+        msg = generate() + "\n"
+        print "sending: ", msg
+        conn.send(msg)
 
