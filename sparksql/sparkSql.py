@@ -1,3 +1,5 @@
+import findspark
+findspark.init()
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import *
@@ -189,9 +191,32 @@ def ip_x_more_than_stddev(time, rdd, X, T):
     except:
         pass
 
+def ip_x_more_than_stddev2(current_time, time, rdd, X, T):
+    """
 
+    :param T:
+    :return:
+    """
+    print ("current:", current_time)
+    print("\n========= %s =========" % str(time))
+    try:
+        spark = getSparkSessionInstance(rdd.context.getConf())
+        rowRdd = rdd.map(lambda p: p.split("/"))
+        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
+                                          protocol=p[1], portNum=p[2], src_ip=p[3], dest_ip=p[4], data_size=p[5]))
+        df = spark.createDataFrame(rowRdd)
+        df.createOrReplaceTempView("services")
 
-words.foreachRDD(lambda x: protocols_x_more_than_stddev(datetime.datetime.now(), x, 2, 20))
+        q = "SELECT b.src_ip from " \
+            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by src_ip) as b " \
+            "where b.bw > (select stddev(data_size) from services)*" + str(X)
+
+        logsDF = spark.sql(q)
+        logsDF.show()
+    except:
+        pass
+
+words.foreachRDD(lambda current_time, x: ip_x_more_than_stddev2(current_time, datetime.datetime.now(), x, 2, 20))
 ssc.start()
 ssc.awaitTermination()
 
