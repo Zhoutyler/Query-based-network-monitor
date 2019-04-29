@@ -3,6 +3,7 @@ from pyspark.streaming import StreamingContext
 from pyspark.sql import *
 import datetime
 import redis
+
 sc = SparkContext("local[5]", "myapp")
 sc.setLogLevel("ERROR")
 ssc = StreamingContext(sc, 1)
@@ -146,6 +147,10 @@ def protocols_x_more_than_stddev(time, rdd, X, T):
     """
     print("\n========= %s =========" % str(time))
     try:
+        r = redis.StrictRedis(
+            host='localhost',
+            port=6379,
+            charset="utf-8", decode_responses=True)
         spark = getSparkSessionInstance(rdd.context.getConf())
         rowRdd = rdd.map(lambda p: p.split("/"))
         rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
@@ -157,10 +162,16 @@ def protocols_x_more_than_stddev(time, rdd, X, T):
 
         q = "SELECT b.protocol from " \
             "(select protocol, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by protocol) as b " \
-            "where b.bw > (select stddev(data_size) from services)*"+str(X)
+            "where b.bw > (select avg(data_size) from b) + (select stddev(data_size) from services)*"+str(X)
 
         logsDF = spark.sql(q)
-        logsDF.show()
+        ll = [r["src_ip"] for r in logsDF.collect()]
+        dt = datetime.datetime.now()
+        t = dt.strftime("%s")
+        lt = [t, "5", str(X), str(T)]
+        lt = "_".join(lt)
+        print(lt)
+        r.rpush(lt, *ll)
     except:
         pass
 
@@ -175,6 +186,11 @@ def ip_x_more_than_stddev(time, rdd, X, T):
     """
     print("\n========= %s =========" % str(time))
     try:
+        r = redis.StrictRedis(
+            host='localhost',
+            port=6379,
+            charset="utf-8", decode_responses=True)
+
         spark = getSparkSessionInstance(rdd.context.getConf())
         rowRdd = rdd.map(lambda p: p.split("/"))
         rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
@@ -183,16 +199,25 @@ def ip_x_more_than_stddev(time, rdd, X, T):
         df.createOrReplaceTempView("services")
 
         q = "SELECT b.src_ip from " \
-            "(select src_ip, sum(data_size) as bw from services ) where unix_timestamp(current_timestamp()) - unix_timestamp(ts< " + str(T) + " group by src_ip) as b " \
-            "where b.bw > (select stddev(data_size) from services)*" + str(X)
-
+            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by src_ip) as b " \
+            "where b.bw > (select avg(data_size) from services) + (select stddev(data_size) from services)*" + str(X)
+        # q = "select stddev(data_size), avg(data_size) from services"
         logsDF = spark.sql(q)
-        logsDF.show()
+        # logsDF.show()
+        ll = [r["src_ip"] for r in logsDF.collect()]
+        dt = datetime.datetime.now()
+        t = dt.strftime("%s")
+        lt = [t, "6", str(X), str(T)]
+        lt = "_".join(lt)
+        print(lt)
+        print(ll)
+        r.rpush(lt, *ll)
+
     except:
         pass
 
 words = words.window(windowDuration=10, slideDuration=1)
-words.foreachRDD(lambda x: ip_x_more_than_stddev(datetime.datetime.now(), x, 2, 5))
+words.foreachRDD(lambda time, x: ip_x_more_than_stddev(time, x, 1, 5))
 ssc.start()
 ssc.awaitTermination()
 
