@@ -40,8 +40,8 @@ while True:
     print("start")
     conn, addr = sock.accept()
     while True:
-        time.sleep(1)
+        time.sleep(0.2)
         msg = generate() + "\n"
-        print "sending: ", msg
+        print("sending: ", msg)
         conn.send(msg)
 
