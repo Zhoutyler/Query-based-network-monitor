@@ -2,10 +2,13 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import *
 import datetime
+import redis
 sc = SparkContext("local[5]", "myapp")
 sc.setLogLevel("ERROR")
-ssc = StreamingContext(sc, 30)
+ssc = StreamingContext(sc, 1)
 ssc.checkpoint("checkpoint_App")
+
+words = ssc.socketTextStream("localhost", 9999)
 
 
 def getSparkSessionInstance(sparkConf):
@@ -16,7 +19,6 @@ def getSparkSessionInstance(sparkConf):
             .getOrCreate()
     return globals()["sparkSessionSingletonInstance"]
 
-words = ssc.socketTextStream("localhost", 9999)
 
 #  List protocols that are consuming more than H percent of the total external bandwidth over the last T time units.
 def top_protocol_H_T(time, rdd, H, T):
@@ -181,7 +183,7 @@ def ip_x_more_than_stddev(time, rdd, X, T):
         df.createOrReplaceTempView("services")
 
         q = "SELECT b.src_ip from " \
-            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by src_ip) as b " \
+            "(select src_ip, sum(data_size) as bw from services ) where unix_timestamp(current_timestamp()) - unix_timestamp(ts< " + str(T) + " group by src_ip) as b " \
             "where b.bw > (select stddev(data_size) from services)*" + str(X)
 
         logsDF = spark.sql(q)
@@ -189,9 +191,8 @@ def ip_x_more_than_stddev(time, rdd, X, T):
     except:
         pass
 
-
-
-words.foreachRDD(lambda x: protocols_x_more_than_stddev(datetime.datetime.now(), x, 2, 20))
+words = words.window(windowDuration=10, slideDuration=1)
+words.foreachRDD(lambda x: ip_x_more_than_stddev(datetime.datetime.now(), x, 2, 5))
 ssc.start()
 ssc.awaitTermination()
 
