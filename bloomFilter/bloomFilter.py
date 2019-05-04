@@ -24,9 +24,7 @@ class BloomFilter(object):
         # initialize all bits as 0 
         self.bit_array.setall(0) 
 
-    '''
-    Add an item in the filter 
-    '''
+    #  Add an item in the filter
     def add(self, item):
         digests = [] 
         for i in range(self.hash_count): 
@@ -40,9 +38,8 @@ class BloomFilter(object):
             # set the bit True in bit_array 
             self.bit_array[digest] = True
 
-    ''' 
-        Check for existence of an item in filter 
-        '''
+
+    #  Check for existence of an item in filter
     def check(self, item): 
 
         for i in range(self.hash_count): 
@@ -55,33 +52,33 @@ class BloomFilter(object):
                 return False
         return True
 
-    ''' 
-            Return the size of bit array(m) to used using 
-            following formula 
-            m = -(n * lg(p)) / (lg(2)^2) 
-            n : int 
-                number of items expected to be stored in filter 
-            p : float 
-                False Positive probability in decimal 
-            '''
-    @classmethod
-    def get_size(self,n,p): 
 
+    @classmethod
+    def get_size(self,n,p):
+        '''
+                    Return the size of bit array(m) to used using
+                    following formula
+                    m = -(n * lg(p)) / (lg(2)^2)
+                    n : int
+                        number of items expected to be stored in filter
+                    p : float
+                        False Positive probability in decimal
+                    '''
         m = -(n * math.log(p))/(math.log(2)**2) 
         return int(m)
 
-    ''' 
-            Return the hash function(k) to be used using 
-            following formula 
-            k = (m/n) * lg(2) 
 
-            m : int 
-                size of bit array 
-            n : int 
-                number of items expected to be stored in filter 
-            '''
     @classmethod
-    def get_hash_count(self, m, n): 
+    def get_hash_count(self, m, n):
+        '''
+                   Return the hash function(k) to be used using
+                   following formula
+                   k = (m/n) * lg(2)
 
+                   m : int
+                       size of bit array
+                   n : int
+                       number of items expected to be stored in filter
+                   '''
         k = (m/n) * math.log(2) 
         return int(k) 

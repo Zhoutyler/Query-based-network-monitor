@@ -4,13 +4,12 @@ from pyspark.sql import *
 import datetime
 import redis
 
-sc = SparkContext("local[5]", "myapp")
+sc = SparkContext("local[10]", "myapp")
 sc.setLogLevel("ERROR")
-ssc = StreamingContext(sc, 1)
+ssc = StreamingContext(sc, 2)
 ssc.checkpoint("checkpoint_App")
 
 words = ssc.socketTextStream("localhost", 9999)
-
 
 def getSparkSessionInstance(sparkConf):
     if ("sparkSessionSingletonInstance" not in globals()):
@@ -19,7 +18,6 @@ def getSparkSessionInstance(sparkConf):
             .config(conf=sparkConf) \
             .getOrCreate()
     return globals()["sparkSessionSingletonInstance"]
-
 
 #  List protocols that are consuming more than H percent of the total external bandwidth over the last T time units.
 def top_protocol_H_T(time, rdd, H, T):
@@ -162,19 +160,20 @@ def protocols_x_more_than_stddev(time, rdd, X, T):
 
         q = "SELECT b.protocol from " \
             "(select protocol, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by protocol) as b " \
-            "where b.bw > (select avg(data_size) from b) + (select stddev(data_size) from services)*"+str(X)
+            "where b.bw > (select avg(data_size) from services) + (select stddev(data_size) from services)*"+str(X)
 
+        # q = "select stddev(data_size) from services"
         logsDF = spark.sql(q)
-        ll = [r["src_ip"] for r in logsDF.collect()]
+        ll = [r["protocol"] for r in logsDF.collect()]
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
         lt = [t, "5", str(X), str(T)]
         lt = "_".join(lt)
+        print(ll)
         print(lt)
         r.rpush(lt, *ll)
-    except:
-        pass
-
+    except Exception as err:
+        print(err)
 
 #  List all IP addresses that are consuming more than X times the standard deviation
 # of the average traffic consumption of all IP addresses over the last T time units.
@@ -201,7 +200,7 @@ def ip_x_more_than_stddev(time, rdd, X, T):
         q = "SELECT b.src_ip from " \
             "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by src_ip) as b " \
             "where b.bw > (select avg(data_size) from services) + (select stddev(data_size) from services)*" + str(X)
-        # q = "select stddev(data_size), avg(data_size) from services"
+        # q = "select stddev(data_size) from services"
         logsDF = spark.sql(q)
         # logsDF.show()
         ll = [r["src_ip"] for r in logsDF.collect()]
@@ -213,11 +212,13 @@ def ip_x_more_than_stddev(time, rdd, X, T):
         print(ll)
         r.rpush(lt, *ll)
 
-    except:
-        pass
+    except Exception as err:
+        print(err)
 
-words = words.window(windowDuration=10, slideDuration=1)
-words.foreachRDD(lambda time, x: ip_x_more_than_stddev(time, x, 1, 5))
+words1 = words.window(windowDuration=16, slideDuration=2)
+words2 = words.window(windowDuration=16, slideDuration=2)
+words1.foreachRDD(lambda time, x: top_k_ip(time, x, 10, 15))
+words2.foreachRDD(lambda time, x: top_k_protocols(time, x, 10, 15))
 ssc.start()
 ssc.awaitTermination()
 

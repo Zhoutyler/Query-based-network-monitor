@@ -45,5 +45,3 @@ while True:
         print("sending: ", msg)
         conn.send(msg)
 
-
-
