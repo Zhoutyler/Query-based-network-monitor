@@ -5,6 +5,8 @@
 !.vscode/extensions.json
 checkpoint_App/**
 checkpoint_App1/**
+sparksql/checkpoint_App/**
+sparksql/checkpoint_App/**
 **/__pycache__/**
 logs.txt
 *.log
