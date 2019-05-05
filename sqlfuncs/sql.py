@@ -2,6 +2,7 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import *
 import datetime
+import time
 import redis
 
 def getSparkSessionInstance(sparkConf):
@@ -19,8 +20,50 @@ def top_protocol_H_T(time, rdd, H, T):
     :param T:
     :return:
     """
-    print("\n")
-    print("========= %s =========" % str(time))
+    print("\n========= %s =========" % str(time))
+    try:
+        r = redis.StrictRedis(
+            host='localhost',
+            port=6379,
+            charset="utf-8", decode_responses=True)
+        spark = getSparkSessionInstance(rdd.context.getConf())
+        
+        rowRdd = rdd.map(lambda p: p.split("/"))
+        unix_cur_time = int(time.timestamp())
+        rowRdd = rowRdd.filter(lambda p: unix_cur_time - int(datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f').timestamp()) <= T) \
+            .map(lambda p: Row(protocol=p[1], data_size=p[5]))
+        
+        df = spark.createDataFrame(rowRdd)
+        df.createOrReplaceTempView("services")
+        q = '''
+        SELECT b.protocol, b.bw FROM 
+                 (SELECT protocol, sum(data_size) as bw FROM services GROUP BY protocol) as b 
+                 WHERE b.bw > (
+                     SELECT sum(data_size) FROM services) * %f''' % H
+        logsDF = spark.sql(q)
+        
+        ll = [r["protocol"] for r in logsDF.collect()]
+        dt = datetime.datetime.now()
+        t = dt.strftime("%s")
+        lt = [t, "1", str(H), str(T)]
+        lt = "_".join(lt)
+        print(ll)
+        print(lt)
+        print (datetime.datetime.now())
+        print (time)
+        print ("origin:", datetime.datetime.now() - time)
+        r.rpush(lt, *ll)
+    except Exception as e:
+        print (e)
+
+'''
+def top_protocol_H_T_test(time, rdd, H, T):
+    """
+    :param H:
+    :param T:
+    :return:
+    """
+    print("\n========= %s =========" % str(time))
     try:
         r = redis.StrictRedis(
             host='localhost',
@@ -28,24 +71,20 @@ def top_protocol_H_T(time, rdd, H, T):
             charset="utf-8", decode_responses=True)
         # Get the singleton instance of SparkSession
         spark = getSparkSessionInstance(rdd.context.getConf())
-
         rowRdd = rdd.map(lambda p: p.split("/"))
-        
+        print (rowRdd.collect())
         # Convert RDD[String] to RDD[Row] to DataFrame
         rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
                                           protocol=p[1], data_size=p[5]))
         df = spark.createDataFrame(rowRdd)
-
+        unix_cur_time = int(time.timestamp())
+        print (unix_cur_time)
         # Creates a temporary view using the DataFrame
         df.createOrReplaceTempView("services")
 
         q = "SELECT b.protocol from " \
-            "(select protocol, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by protocol) as b " \
-            "where b.bw > (select sum(data_size) from services)*"+str(H)
-
-        #x = "where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < 20"
-        # q = "select ts from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < 5"
-        # Do word count on table using SQL and print it
+            "(select protocol, sum(data_size) as bw from services where %d - unix_timestamp(ts) < %d group by protocol) as b " \
+            "where b.bw > (select sum(data_size) from services) * %f" % (unix_cur_time, T, H)
         logsDF = spark.sql(q)
 
         ll = [r["protocol"] for r in logsDF.collect()]
@@ -55,10 +94,14 @@ def top_protocol_H_T(time, rdd, H, T):
         lt = "_".join(lt)
         print(ll)
         print(lt)
+        print (datetime.datetime.now())
+        print (time)
+        print ("test:", datetime.datetime.now() - time)
         r.rpush(lt, *ll)
-    except:
-        pass
-
+        
+    except Exception as e:
+        print (e)
+'''
 
 #  List the top-k most resource intensive protocols over the last T time units.
 def top_k_protocols(time, rdd, k, T):
@@ -75,15 +118,18 @@ def top_k_protocols(time, rdd, k, T):
             port=6379,
             charset="utf-8", decode_responses=True)
         spark = getSparkSessionInstance(rdd.context.getConf())
+        
         rowRdd = rdd.map(lambda p: p.split("/"))
-        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
-                                          protocol=p[1], data_size=p[5]))
+        unix_cur_time = int(time.timestamp())
+        rowRdd = rowRdd.filter(lambda p: unix_cur_time - int(datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f').timestamp()) <= T) \
+            .map(lambda p: Row(protocol=p[1]))
+        
         df = spark.createDataFrame(rowRdd)
         df.createOrReplaceTempView("services")
-
-        q = "SELECT b.protocol, b.t from " \
-            "(select protocol, count(protocol) as t from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by protocol) as b order by b.t desc limit " + str(k)
-
+        q = '''
+        SELECT b.protocol, b.t FROM 
+                 (SELECT protocol, count(protocol) as t FROM services GROUP BY protocol) as b 
+                 ORDER BY b.t DESC LIMIT %d''' % k
         logsDF = spark.sql(q)
         # ll = [r["protocol"] for r in logsDF.collect()]
         d = {r["protocol"]: r["t"] for r in logsDF.collect()}
@@ -115,27 +161,31 @@ def top_ip_addr_H_T(time, rdd, H, T):
             port=6379,
             charset="utf-8", decode_responses=True)
         spark = getSparkSessionInstance(rdd.context.getConf())
+        
         rowRdd = rdd.map(lambda p: p.split("/"))
-        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
-                                          src_ip=p[3], data_size=p[5]))
+        unix_cur_time = int(time.timestamp())
+        rowRdd = rowRdd.filter(lambda p: unix_cur_time - int(datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f').timestamp()) <= T) \
+            .map(lambda p: Row(src_ip=p[3], data_size=p[5]))
+        
         df = spark.createDataFrame(rowRdd)
         df.createOrReplaceTempView("services")
-
-        q = "SELECT b.src_ip from " \
-            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by src_ip) as b " \
-            "where b.bw > (select sum(data_size) from services)*"+str(H)
-
+        q = '''
+        SELECT b.src_ip, b.bw FROM 
+                 (SELECT src_ip, sum(data_size) as bw FROM services GROUP BY src_ip) as b 
+                 WHERE b.bw > (
+                     SELECT sum(data_size) FROM services) * %d''' % H
         logsDF = spark.sql(q)
+        
         ll = [r["src_ip"] for r in logsDF.collect()]
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
-        lt = [t, "3", str(H), str(T)]
+        lt = [t, "1", str(H), str(T)]
         lt = "_".join(lt)
         print(ll)
         print(lt)
         r.rpush(lt, *ll)
-    except:
-        pass
+    except Exception as e:
+        print (e)
 
 #  List the top-k most resource intensive IP addresses over the last T time units.
 def top_k_ip(time, rdd, k, T):
@@ -151,20 +201,24 @@ def top_k_ip(time, rdd, k, T):
             port=6379,
             charset="utf-8", decode_responses=True)
         spark = getSparkSessionInstance(rdd.context.getConf())
+        
         rowRdd = rdd.map(lambda p: p.split("/"))
-        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
-                                          src_ip=p[3], data_size=p[5]))
+        unix_cur_time = int(time.timestamp())
+        rowRdd = rowRdd.filter(lambda p: unix_cur_time - int(datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f').timestamp()) <= T) \
+            .map(lambda p: Row(src_ip=p[3]))
+        
         df = spark.createDataFrame(rowRdd)
         df.createOrReplaceTempView("services")
-
-        q = "SELECT b.src_ip, b.t from " \
-            "(select src_ip, count(src_ip) as t from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) +" group by src_ip) as b order by b.t desc limit " + str(k)
-
+        q = '''
+        SELECT b.src_ip, b.t FROM 
+                 (SELECT src_ip, count(src_ip) as t FROM services GROUP BY src_ip) as b 
+                 ORDER BY b.t DESC LIMIT %d''' % k
         logsDF = spark.sql(q)
         d = {r["src_ip"]: r["t"] for r in logsDF.collect()}
+
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
-        lt = [t, "4", str(k), str(T)]
+        lt = [t, "1", str(H), str(T)]
         lt = "_".join(lt)
         print(d)
         print(lt)
@@ -176,12 +230,6 @@ def top_k_ip(time, rdd, k, T):
 #  List all protocols that are consuming more than X times the standard deviation of
 # the average traffic consumption of all protocols over the last T time units.
 def protocols_x_more_than_stddev(time, rdd, X, T):
-    """
-
-    :param X:
-    :param T:
-    :return:
-    """
     print("\n========= %s =========" % str(time))
     try:
         r = redis.StrictRedis(
