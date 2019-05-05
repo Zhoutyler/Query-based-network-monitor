@@ -1,4 +1,3 @@
-var msg = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 function predict(query_id, H, T) {
     axios({
         url: "http://localhost:5000/api/"+query_id+"/"+H+"/"+T,
@@ -6,7 +5,10 @@ function predict(query_id, H, T) {
     }).then(response => {
         console.log(response);
         $('.out').remove()
-        addoutput(response['data'])
+        if (jQuery.isEmptyObject(response['data'])) {
+            predict(query_id, H, T)
+        }
+        // addoutput(response['data'])
     } ).catch(error => {
         console.log(error)
     })
@@ -14,7 +16,7 @@ function predict(query_id, H, T) {
 
 function addoutput(message) {
     var m = message.split(',')
-    var outp = $(".outp")
+    var outp = $(".photoBody")
     var d1 = $("<div class = 'out'> Price:"+ m[0] + "</div>");
     var d2 = $("<div class = 'out'> Deviation:" + m[1] + "</div>");
     outp.append(d1);
@@ -37,6 +39,3 @@ $(".msg").keydown(function () {
         $(".msg").val(null);
     }
 });
-function clik() {
-    document.getElementById("modal01").style.display = 'none';
-}

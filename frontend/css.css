@@ -279,7 +279,7 @@ body{
     margin: 0 auto;
     height: 90%;
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: column;
     align-content: space-between;
 }
 .bottom {
