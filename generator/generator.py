@@ -1,47 +1,27 @@
+#!/usr/local/bin/python2
 from socket import *
 import datetime
 import random
 import time
 import json
+import threading
 
-def ip_addr_generator():
-    x = [str(random.randrange(1, 255)), str(random.randrange(0, 255)),
-         str(random.randrange(0, 255)), str(random.randrange(0, 255))]
-    return ".".join(x)
-
-
-def port_num_generator():
-    return str(random.randrange(1, 10000))
-
-
-def data_size_generator():
-    return str(random.randrange(1, 10000))
-
-
-def generate():
-    services = ["http", "tcp", "smtp", "pop3", "imap", "mysql", "ftp", "dns", "udp", "bolt"]
-    msg1 = [str(datetime.datetime.now())
-        , services[random.randrange(0, len(services))]
-        , port_num_generator()
-        , ip_addr_generator()
-        , "127.0.0.1"
-        , data_size_generator()]
-
-    return "/".join(msg1)
-
+def worker(conn):
+    with open("/Users/xiangli/2019_Spring/large_data/final/logs.txt", "r") as f:
+        while True:
+            log = str(datetime.datetime.now()) + "/"+ f.readline()
+            time.sleep(1) 
+            print(log)
+            conn.send(log)
 
 servername = 'localhost'
 serverPort = 9999
 sock = socket(AF_INET, SOCK_STREAM)
 sock.bind(("localhost", 9999))
-sock.listen(1)
+sock.listen(2)
 
+print("start")
 while True:
-    print("start")
     conn, addr = sock.accept()
-    while True:
-        time.sleep(0.2)
-        msg = generate() + "\n"
-        print("sending: ", msg)
-        conn.send(msg)
-
+    thd = threading.Thread(target=worker, args=(conn,))
+    thd.start()
