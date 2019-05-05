@@ -18,7 +18,7 @@ servername = 'localhost'
 serverPort = 9999
 sock = socket(AF_INET, SOCK_STREAM)
 sock.bind(("localhost", 9999))
-sock.listen(2)
+sock.listen(10)
 
 print("start")
 while True:
