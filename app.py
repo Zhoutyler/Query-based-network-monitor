@@ -20,9 +20,9 @@ r = redis.StrictRedis(
 def get_res(ts, kind, H, T):
     t = ts.strftime("%s")
     # 1
-    #t = "1557114736"
+    t = "1557156769"
     # 4
-    t = "1557121286"
+    # t = "1557121286"
     key = "_".join([t, kind, H, T])
     print (key)
     res = r.hgetall(key)

@@ -28,26 +28,27 @@ function renderGraph(query_id, x, y) {
     switch(Number(query_id)) {
 		case 1:
 			title = "top_protocol_H_T"
-			//var ctx = $('#top_protocol_H_T').get(0).getContext('2d')
-			//renderPieGraph(ctx, x, y, title)
+			ylabel = "data size"
+			var ctx = $('#top_protocol_H_T').get(0).getContext('2d')
+			renderPieGraph(ctx, x, y, ylabel, title)
 			break
 		case 2:
 			title = "top_k_protocols_T"
-			ylabel = "count"
-			var ctx = $('#top_k_protocols_T').get(0).getContext('2d')
-			renderBarGraph(ctx, x, y, ylabel, title)
+			word_count = zip(x, y)
+			drawWordCloud(word_count);
 			break
 		case 3:
 			title = "protocols_x_more_than_stddev"
-			renderBarGraph(x, y, title)
+			renderBarGraph(x, y, title)	
 		case 4:
 			title = "top_ip_addr_H_T"
 			var ctx = $('#top_ip_addr_H_T').get(0).getContext('2d')
 			renderPieGraph(ctx, x, y, title)
-			break;
+			break
 		case 5:
 			title = "top_k_ip_T"
-			renderBarGraph(x, y, title)
+			word_count = zip(x, y)
+			drawWordCloud(word_count);
 			break
 		case 6:
 			title = "ip_x_more_than_stddev"
@@ -56,7 +57,12 @@ function renderGraph(query_id, x, y) {
 	}
 }
 	
-
+function zip(x, y) {
+    var result = {};
+    for (var i = 0; i < x.length; i++)
+         result[x[i]] = y[i];
+    return result;
+}
 function createDictData(response) {
     var keys = []
     var values = []
@@ -164,3 +170,7 @@ $(".msg").keydown(function () {
         $(".msg").val(null);
     }
 });
+
+//var text_string = "aaaa bbbb cccc";
+
+//drawWordCloud(text_string);

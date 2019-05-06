@@ -215,7 +215,7 @@ def top_k_ip(time, rdd, k, T):
 
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
-        lt = [t, "5", str(H), str(T)]
+        lt = [t, "5", str(k), str(T)]
         lt = "_".join(lt)
         print(d)
         print(lt)
