@@ -1,11 +1,11 @@
 from flask import Flask
-from flask import request
+from flask_cors import CORS
 from flask import Response
 import redis
-
+import json
 import datetime
 app = Flask(__name__)
-
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 @app.route('/')
 def hello_world():
@@ -23,13 +23,14 @@ r = redis.StrictRedis(
 
 
 def get_res(ts, kind, H, T):
-    key = "_".join([ts, kind, H, T])
-    res = r.get(key)
+    t = ts.strftime("%s")
+    key = "_".join([t, kind, H, T])
+    res = r.hgetall(key)
     return res
 
 
-@app.route('/<query_id>/<H>/<T>/<X>/<k>', methods=['GET'])
-def handle_request(query_id, H, T, X, k):
+@app.route('/api/<query_id>/<H>/<T>', methods=['GET'])
+def handle_request(query_id, H, T):
     resp = Response("Internal server error", status=500, mimetype="text/plain")
     '''
     query_id:
@@ -46,16 +47,17 @@ def handle_request(query_id, H, T, X, k):
         if query_id == "1":
             res = get_res(ts, query_id, H, T)
         elif query_id == "2":
-            res = get_res(ts, query_id, k, T)
+            res = get_res(ts, query_id, H, T)
         elif query_id == "3":
-            res = get_res(ts, query_id, X, T)
+            res = get_res(ts, query_id, H, T)
         elif query_id == "4":
             res = get_res(ts, query_id, H, T)
         elif query_id == "5":
-            res = get_res(ts, query_id, k, T)
+            res = get_res(ts, query_id, H, T)
         elif query_id == "6":
-            res = get_res(ts, query_id, X, T)
-        resp = Response(res, status=200, mimetype='application/json')
+            res = get_res(ts, query_id, H, T)
+        print(res)
+        resp = Response(json.dumps(res), status=200, mimetype='application/json')
 
     except Exception as err:
         print(err)
