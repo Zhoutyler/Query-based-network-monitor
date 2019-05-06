@@ -11,11 +11,6 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 def hello_world():
     return 'Hello World!'
 
-
-if __name__ == '__main__':
-    app.run()
-
-
 r = redis.StrictRedis(
     host='localhost',
     port=6379,
@@ -24,8 +19,11 @@ r = redis.StrictRedis(
 
 def get_res(ts, kind, H, T):
     t = ts.strftime("%s")
+    t = "1557105827"
     key = "_".join([t, kind, H, T])
+    print (key)
     res = r.hgetall(key)
+    print (res)
     return res
 
 
@@ -63,4 +61,7 @@ def handle_request(query_id, H, T):
         print(err)
 
     return resp
+
+if __name__ == '__main__':
+    app.run()
 
