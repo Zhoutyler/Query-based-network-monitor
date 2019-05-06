@@ -19,7 +19,10 @@ r = redis.StrictRedis(
 
 def get_res(ts, kind, H, T):
     t = ts.strftime("%s")
-    t = "1557105827"
+    # 1
+    #t = "1557114736"
+    # 4
+    t = "1557121286"
     key = "_".join([t, kind, H, T])
     print (key)
     res = r.hgetall(key)
@@ -36,7 +39,7 @@ def handle_request(query_id, H, T):
     # 2 -> top_k_protocols_T
     # 3 -> protocols_x_more_than_stddev
     # 4 -> top_ip_addr_H_T
-    # 5 -> top_k_ip_H
+    # 5 -> top_k_ip_T
     # 6 -> ip_x_more_than_stddev
     '''
     res = None

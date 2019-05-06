@@ -42,17 +42,14 @@ def top_protocol_H_T(time, rdd, H, T):
                      SELECT sum(data_size) FROM services) * %f''' % H
         logsDF = spark.sql(q)
         
-        ll = [r["protocol"] for r in logsDF.collect()]
+        d = {r["protocol"]: r["bw"] for r in logsDF.collect()}
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
         lt = [t, "1", str(H), str(T)]
         lt = "_".join(lt)
-        print(ll)
+        print(d)
         print(lt)
-        print (datetime.datetime.now())
-        print (time)
-        print ("origin:", datetime.datetime.now() - time)
-        r.rpush(lt, *ll)
+        r.hmset(lt, d)
     except Exception as e:
         print (e)
 
@@ -176,14 +173,14 @@ def top_ip_addr_H_T(time, rdd, H, T):
                      SELECT sum(data_size) FROM services) * %d''' % H
         logsDF = spark.sql(q)
         
-        ll = [r["src_ip"] for r in logsDF.collect()]
+        d = {r["src_ip"]: r["bw"] for r in logsDF.collect()}
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
-        lt = [t, "1", str(H), str(T)]
+        lt = [t, "4", str(H), str(T)]
         lt = "_".join(lt)
-        print(ll)
+        print(d)
         print(lt)
-        r.rpush(lt, *ll)
+        r.hmset(lt, d)
     except Exception as e:
         print (e)
 
@@ -218,7 +215,7 @@ def top_k_ip(time, rdd, k, T):
 
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
-        lt = [t, "1", str(H), str(T)]
+        lt = [t, "5", str(H), str(T)]
         lt = "_".join(lt)
         print(d)
         print(lt)
@@ -254,7 +251,7 @@ def protocols_x_more_than_stddev(time, rdd, X, T):
         d = {r["protocol"]: r["bw"] for r in logsDF.collect()}
         dt = datetime.datetime.now()
         t = dt.strftime("%s")
-        lt = [t, "5", str(X), str(T)]
+        lt = [t, "3", str(X), str(T)]
         lt = "_".join(lt)
         print(d)
         print(lt)
