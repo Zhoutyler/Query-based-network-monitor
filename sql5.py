@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3.7
 
 from sqlfuncs.sql import *
-sc = SparkContext("local[5]", "myapp1")
+sc = SparkContext("local[6]", "myapp1")
 sc.setLogLevel("ERROR")
 ssc = StreamingContext(sc, 2)
 ssc.checkpoint("checkpoint_App1")

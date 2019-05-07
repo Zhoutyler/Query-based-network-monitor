@@ -189,15 +189,17 @@ def protocols_x_more_than_stddev(time, rdd, X, T):
             charset="utf-8", decode_responses=True)
         spark = getSparkSessionInstance(rdd.context.getConf())
         rowRdd = rdd.map(lambda p: p.split("/"))
-        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
-                                          protocol=p[1], data_size=p[5]))
+        unix_cur_time = int(time.timestamp())
+        rowRdd = rowRdd.filter(
+            lambda p: unix_cur_time - int(datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f').timestamp()) <= T) \
+            .map(lambda p: Row(protocol=p[1],data_size=p[5]))
         df = spark.createDataFrame(rowRdd)
         df.createOrReplaceTempView("services")
 
         # q = "select CAST(data_size as DOUBLE) from services"
 
         q = "SELECT b.protocol, b.bw from " \
-            "(select protocol, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by protocol) as b " \
+            "(select protocol, sum(data_size) as bw from services group by protocol) as b " \
             "where b.bw > (select avg(data_size) from services) + (select stddev(data_size) from services)*"+str(X)
 
         # q = "select stddev(data_size) from services"
@@ -230,13 +232,15 @@ def ip_x_more_than_stddev(time, rdd, X, T):
 
         spark = getSparkSessionInstance(rdd.context.getConf())
         rowRdd = rdd.map(lambda p: p.split("/"))
-        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
-                                          src_ip=p[3], data_size=p[5]))
+        unix_cur_time = int(time.timestamp())
+        rowRdd = rowRdd.filter(
+            lambda p: unix_cur_time - int(datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f').timestamp()) <= T) \
+            .map(lambda p: Row(src_ip=p[3],data_size=p[5]))
         df = spark.createDataFrame(rowRdd)
         df.createOrReplaceTempView("services")
 
         q = "SELECT b.src_ip, b.bw from " \
-            "(select src_ip, sum(data_size) as bw from services where unix_timestamp(current_timestamp()) - unix_timestamp(ts) < " + str(T) + " group by src_ip) as b " \
+            "(select src_ip, sum(data_size) as bw from services group by src_ip) as b " \
             "where b.bw > (select avg(data_size) from services) + (select stddev(data_size) from services)*" + str(X)
         # q = "select stddev(data_size) from services"
         logsDF = spark.sql(q)
@@ -248,7 +252,7 @@ def ip_x_more_than_stddev(time, rdd, X, T):
         lt = "_".join(lt)
         print(lt)
         print(d)
-        r.hmget(lt, d)
+        r.hmset(lt, d)
 
     except Exception as err:
         print(err)
