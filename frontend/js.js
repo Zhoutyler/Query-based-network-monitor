@@ -3,7 +3,7 @@ function predict(query_id, H, T) {
         url: "http://localhost:5000/api/"+query_id+"/"+H+"/"+T,
         method: 'get',
     }).then(response => {
-        console.log(response);
+        console.log(response)
         $('.out').remove()
         if (jQuery.isEmptyObject(response['data'])) {
             predict(query_id, H, T)
@@ -25,11 +25,8 @@ function addoutput(message) {
 
 function send() {
     var query_id = $(".query").val()
-    console.log(query_id)
     var H = $(".H").val()
     var T = $(".T").val()
-    console.log(H)
-    console.log(T)
     predict(query_id, H, T);
 }
 
@@ -39,3 +36,4 @@ $(".msg").keydown(function () {
         $(".msg").val(null);
     }
 });
+
