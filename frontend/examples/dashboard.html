@@ -17,6 +17,7 @@
   <link href="../assets/css/bootstrap.min.css" rel="stylesheet" />
   <link href="../assets/css/now-ui-dashboard.css?v=1.3.0" rel="stylesheet" />
   <!-- CSS Just for demo purpose, don't include it in your project -->
+  <link rel="stylesheet" media="screen, projection" href="fancySelect.css">
   <link href="../assets/demo/demo.css" rel="stylesheet" />
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.js"> </script>
@@ -32,10 +33,10 @@
     -->
       <div class="logo">
         <a href="http://www.creative-tim.com" class="simple-text logo-mini">
-          CT
+          NM
         </a>
         <a href="http://www.creative-tim.com" class="simple-text logo-normal">
-          Creative Tim
+          Network Monitor
         </a>
       </div>
       <div class="sidebar-wrapper" id="sidebar-wrapper">
@@ -63,11 +64,16 @@
             </div>
             <a class="navbar-brand" href="#pablo">Dashboard</a>
           </div>
-		  <div class="chatBody">
-                
-                
-                <div class="ix" autocomplete="on">
-                    <select class="query">
+  	  
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-bar navbar-kebab"></span>
+            <span class="navbar-toggler-bar navbar-kebab"></span>
+            <span class="navbar-toggler-bar navbar-kebab"></span>
+          </button>
+          <div class="collapse navbar-collapse justify-content-end" id="navigation">
+	    <div class="parent">
+                <div class="left">
+                    <select class="query menu" style="margin-right: 15px">
                         <option value="1">top_protocol_H_T</option>
                         <option value="2">top_k_protocol_T</option>
                         <option value="3">protocol_X_stddev</option>
@@ -75,19 +81,15 @@
                         <option value="5">top_k_ip</option>
                         <option value="6">ip_X_stddev</option>
                     </select>
-                    <select class = "T">
+		</div>
+		<div class="right">
+                    <select class = "T menu" style="margin-right: 15px">
                         <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="15">15</option>
                     </select>
                 </div>
             </div>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-          </button>
-          <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <form>
               <div class="input-group no-border">
                 <input type="text" value="" class="form-control H" placeholder="Parameter...">
@@ -143,17 +145,6 @@
               <div class="card-header">
                 <h5 class="card-category">Protocols</h5>
                 <h4 class="card-title">Bandwidth More Than X Stddev</h4>
-                <div class="dropdown">
-                  <button type="button" class="btn btn-round btn-outline-default dropdown-toggle btn-simple btn-icon no-caret" data-toggle="dropdown">
-                    <i class="now-ui-icons loader_gear"></i>
-                  </button>
-                  <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="#">Action</a>
-                    <a class="dropdown-item" href="#">Another action</a>
-                    <a class="dropdown-item" href="#">Something else here</a>
-                    <a class="dropdown-item text-danger" href="#">Remove Data</a>
-                  </div>
-                </div>
               </div>
               <div class="card-body">
                 <div class="chart-area">
@@ -285,9 +276,13 @@
   <script src="../assets/js/now-ui-dashboard.min.js?v=1.3.0" type="text/javascript"></script>
   <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
   <script src="../assets/demo/demo.js"></script>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="fancySelect.js"></script>
   <script>
     $(document).ready(function() {
       // Javascript method's body can be found in assets/js/demos.js
+      $('.menu').fancySelect();
       demo.initDashboardPageCharts();
 
     });

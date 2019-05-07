@@ -246,14 +246,12 @@ function send() {
 // get first batch of data
 function initGraph() {
 	predict(2, 10, 15)
-	// protocols_wc.update([{text:"aa", size:90},{text:"ab", size:80},{text: "cc", size:70}])
-	//console.log([{text:"aa", size:90},{text:"ab", size:80},{text: "cc", size:70}])
-	// protocols_wc.update(top_k_protocols)
 	predict(5, 10, 15)
 	predict(1, 0.1, 15)
 	predict(4, 0.1, 15)
-	predict(3, 1, 15)
 	predict(6, 1, 15)
+	predict(3, 1, 15)
+	predict(3, 1, 15)
 }
 
 

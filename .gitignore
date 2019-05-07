@@ -5,6 +5,6 @@
 logs.txt
 *.pyc
 *.log
-.gitignore.swp
+*.swp
 .idea/**
 .DS_Store

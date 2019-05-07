@@ -1,0 +1,124 @@
+.parent {
+    display: flex;
+    margin: 1em 0;
+    border: 1px solid #333;
+    align-items: center;
+}
+.left {
+    padding: 0;
+    margin-right: 15px;
+    text-align: center;
+}
+
+.right {
+    padding: 0;
+    margin-right: 15px;
+    text-align: center;    
+}
+
+div.fancy-select {
+position: relative;
+font-weight: bold;
+text-transform: uppercase;
+font-size: 13px;
+color: #46565D;
+}
+div.fancy-select.disabled {
+opacity: 0.5;
+}
+div.fancy-select select:focus + div.trigger {
+
+}
+div.fancy-select select:focus + div.trigger.open {
+box-shadow: none;
+}
+div.fancy-select div.trigger {
+border-radius: 30px;
+cursor: pointer;
+padding: 10px 24px 9px 9px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+position: relative;
+background: #577591;
+
+color: #ffffff;
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+width: 200px;
+transition: all 240ms ease-out;
+-webkit-transition: all 240ms ease-out;
+-moz-transition: all 240ms ease-out;
+-ms-transition: all 240ms ease-out;
+-o-transition: all 240ms ease-out;
+}
+div.fancy-select div.trigger:after {
+content: "";
+display: block;
+position: absolute;
+width: 0;
+height: 0;
+
+border-top-color: #4B5468;
+top: 17px;
+right: 9px;
+}
+div.fancy-select div.trigger.open {
+background: #4A5368;
+color: #ffffff	;
+box-shadow: none;
+}
+div.fancy-select div.trigger.open:after {
+}
+div.fancy-select ul.options {
+list-style: none;
+margin: 0;
+position: absolute;
+top: 40px;
+left: 0;
+visibility: hidden;
+opacity: 0;
+z-index: 50;
+max-height: 200px;
+overflow: auto;
+background: #577591;
+border-radius: 4px;
+min-width: 200px;
+padding: 6px 0;
+transition: opacity 300ms ease-out, top 300ms ease-out, visibility 300ms ease-out;
+-webkit-transition: opacity 300ms ease-out, top 300ms ease-out, visibility 300ms ease-out;
+-moz-transition: opacity 300ms ease-out, top 300ms ease-out, visibility 300ms ease-out;
+-ms-transition: opacity 300ms ease-out, top 300ms ease-out, visibility 300ms ease-out;
+-o-transition: opacity 300ms ease-out, top 300ms ease-out, visibility 300ms ease-out;
+}
+div.fancy-select ul.options.open {
+visibility: visible;
+top: 50px;
+opacity: 1;
+}
+div.fancy-select ul.options.overflowing {
+top: auto;
+bottom: 40px;
+transition: opacity 300ms ease-out, bottom 300ms ease-out, visibility 300ms ease-out;
+-webkit-transition: opacity 300ms ease-out, bottom 300ms ease-out, visibility 300ms ease-out;
+-moz-transition: opacity 300ms ease-out, bottom 300ms ease-out, visibility 300ms ease-out;
+-ms-transition: opacity 300ms ease-out, bottom 300ms ease-out, visibility 300ms ease-out;
+-o-transition: opacity 300ms ease-out, bottom 300ms ease-out, visibility 300ms ease-out;
+}
+div.fancy-select ul.options.overflowing.open {
+top: auto;
+bottom: 50px;
+}
+div.fancy-select ul.options li {
+padding: 6px 12px;
+color: #ffffff;
+cursor: pointer;
+white-space: nowrap;
+transition: all 150ms ease-out;
+-webkit-transition: all 150ms ease-out;
+-moz-transition: all 150ms ease-out;
+-ms-transition: all 150ms ease-out;
+-o-transition: all 150ms ease-out;
+}
+div.fancy-select ul.options li.hover {
+color: #fff;
+}
