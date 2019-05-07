@@ -18,7 +18,6 @@ r = redis.StrictRedis(
 
 
 def get_res(ts, kind, H, T):
-
     '''
     # FOR TESTING #
     if kind == "2":
