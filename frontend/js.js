@@ -5,7 +5,7 @@ function predict(query_id, H, T, limit=200) {
         url: "http://localhost:5000/api/"+query_id+"/"+H+"/"+T,
         method: 'get',
     }).then(response => {
-        console.log(response);
+        console.log(response)
         $('.out').remove()
         if (jQuery.isEmptyObject(response['data'])) {
             predict(query_id, H, T, limit-1)
@@ -161,14 +161,8 @@ function renderPieGraph(ctx, x, y, ylabel, title) {
 
 function send() {
     var query_id = $(".query").val()
-    console.log(query_id)
     var H = $(".H").val()
     var T = $(".T").val()
-    console.log(H)
-    console.log(T)
     predict(query_id, H, T);
 }
 
-//var text_string = "aaaa bbbb cccc";
-
-//drawWordCloud(text_string);

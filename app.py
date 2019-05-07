@@ -18,7 +18,6 @@ r = redis.StrictRedis(
 
 
 def get_res(ts, kind, H, T):
-    t = ts.strftime("%s")
 
     '''
     # FOR TESTING #
@@ -36,10 +35,8 @@ def get_res(ts, kind, H, T):
         t = "aaaaaaaaaa"
     ###############
     '''
-    key = "_".join([t, kind, H, T])
-    print (key)
+    key = "_".join([str(ts), kind, H, T])
     res = r.hgetall(key)
-    print (res)
     return res
 
 
@@ -55,25 +52,16 @@ def handle_request(query_id, H, T):
     # 5 -> top_k_ip_T
     # 6 -> ip_x_more_than_stddev
     '''
-
-    res = None
     ts = datetime.datetime.now()
+    t = int(ts.strftime("%s"))
     try:
-        if query_id == "1":
-            res = get_res(ts, query_id, H, T)
-        elif query_id == "2":
-            res = get_res(ts, query_id, H, T)
-        elif query_id == "3":
-            res = get_res(ts, query_id, H, T)
-        elif query_id == "4":
-            res = get_res(ts, query_id, H, T)
-        elif query_id == "5":
-            res = get_res(ts, query_id, H, T)
-        elif query_id == "6":
-            res = get_res(ts, query_id, H, T)
-        print(res)
+        while True:
+            res = get_res(t, query_id, H, T)
+            if len(res) > 0:
+                break
+            else:
+                t -= 1
         resp = Response(json.dumps(res), status=200, mimetype='application/json')
-
     except Exception as err:
         print(err)
 

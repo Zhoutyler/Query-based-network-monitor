@@ -53,53 +53,7 @@ def top_protocol_H_T(time, rdd, H, T):
     except Exception as e:
         print (e)
 
-'''
-def top_protocol_H_T_test(time, rdd, H, T):
-    """
-    :param H:
-    :param T:
-    :return:
-    """
-    print("\n========= %s =========" % str(time))
-    try:
-        r = redis.StrictRedis(
-            host='localhost',
-            port=6379,
-            charset="utf-8", decode_responses=True)
-        # Get the singleton instance of SparkSession
-        spark = getSparkSessionInstance(rdd.context.getConf())
-        rowRdd = rdd.map(lambda p: p.split("/"))
-        print (rowRdd.collect())
-        # Convert RDD[String] to RDD[Row] to DataFrame
-        rowRdd = rowRdd.map(lambda p: Row(ts=datetime.datetime.strptime(p[0], '%Y-%m-%d %H:%M:%S.%f'),
-                                          protocol=p[1], data_size=p[5]))
-        df = spark.createDataFrame(rowRdd)
-        unix_cur_time = int(time.timestamp())
-        print (unix_cur_time)
-        # Creates a temporary view using the DataFrame
-        df.createOrReplaceTempView("services")
-
-        q = "SELECT b.protocol from " \
-            "(select protocol, sum(data_size) as bw from services where %d - unix_timestamp(ts) < %d group by protocol) as b " \
-            "where b.bw > (select sum(data_size) from services) * %f" % (unix_cur_time, T, H)
-        logsDF = spark.sql(q)
-
-        ll = [r["protocol"] for r in logsDF.collect()]
-        dt = datetime.datetime.now()
-        t = dt.strftime("%s")
-        lt = [t, "1", str(H), str(T)]
-        lt = "_".join(lt)
-        print(ll)
-        print(lt)
-        print (datetime.datetime.now())
-        print (time)
-        print ("test:", datetime.datetime.now() - time)
-        r.rpush(lt, *ll)
-        
-    except Exception as e:
-        print (e)
-'''
-
+    
 #  List the top-k most resource intensive protocols over the last T time units.
 def top_k_protocols(time, rdd, k, T):
     """
