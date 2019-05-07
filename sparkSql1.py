@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3.7
-import findspark
-findspark.init()
+#import findspark
+#findspark.init()
 from sqlfuncs.sql import *
 
 sc = SparkContext("local[5]", "myapp2")

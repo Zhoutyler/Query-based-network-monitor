@@ -19,10 +19,23 @@ r = redis.StrictRedis(
 
 def get_res(ts, kind, H, T):
     t = ts.strftime("%s")
-    # 1
-    t = "1557156769"
-    # 4
-    # t = "1557121286"
+
+    '''
+    # FOR TESTING #
+    if kind == "2":
+        t = "1557156790"
+    elif kind == "5":
+        t = "1557186931"
+    elif kind == "1":
+        t = "1557121283"
+    elif kind == "4":
+        t = "1557121292"
+    elif kind == "3":
+        t = "1557189350"
+    elif kind == "6":
+        t = "aaaaaaaaaa"
+    ###############
+    '''
     key = "_".join([t, kind, H, T])
     print (key)
     res = r.hgetall(key)
@@ -42,6 +55,7 @@ def handle_request(query_id, H, T):
     # 5 -> top_k_ip_T
     # 6 -> ip_x_more_than_stddev
     '''
+
     res = None
     ts = datetime.datetime.now()
     try:

@@ -28,7 +28,7 @@ function renderGraph(query_id, x, y) {
     switch(Number(query_id)) {
 		case 1:
 			title = "top_protocol_H_T"
-			ylabel = "data size"
+			ylabel = "bandwidth"
 			var ctx = $('#top_protocol_H_T').get(0).getContext('2d')
 			renderPieGraph(ctx, x, y, ylabel, title)
 			break
@@ -39,7 +39,10 @@ function renderGraph(query_id, x, y) {
 			break
 		case 3:
 			title = "protocols_x_more_than_stddev"
-			renderBarGraph(x, y, title)	
+			ylabel = "bandwidth"
+			var ctx = $('#protocols_x_more_than_stddev').get(0).getContext('2d')
+			renderBarGraph(ctx, x, y, ylabel, title)
+			break
 		case 4:
 			title = "top_ip_addr_H_T"
 			var ctx = $('#top_ip_addr_H_T').get(0).getContext('2d')
@@ -52,7 +55,9 @@ function renderGraph(query_id, x, y) {
 			break
 		case 6:
 			title = "ip_x_more_than_stddev"
-			renderBarGraph(x, y, title)
+			ylabel = "bandwidth"
+			var ctx = $('#ip_x_more_than_stddev').get(0).getContext('2d')
+			renderBarGraph(ctx, x, y, ylabel, title)
 			break
 	}
 }
@@ -163,13 +168,6 @@ function send() {
     console.log(T)
     predict(query_id, H, T);
 }
-
-$(".msg").keydown(function () {
-    if (event.keyCode == "13") {
-        send();
-        $(".msg").val(null);
-    }
-});
 
 //var text_string = "aaaa bbbb cccc";
 
