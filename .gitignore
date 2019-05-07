@@ -3,6 +3,7 @@
 **/checkpoint_App1/**
 **/__pycache__/**
 logs.txt
+*.pyc
 *.log
 .gitignore.swp
 .idea/**
