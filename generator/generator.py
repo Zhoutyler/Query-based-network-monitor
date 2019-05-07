@@ -7,10 +7,10 @@ import json
 import threading
 
 def worker(conn):
-    with open("/Users/xiangli/2019_Spring/large_data/final/logs.txt", "r") as f:
+    with open("logs.txt", "r") as f:
         while True:
             log = str(datetime.datetime.now()) + "/"+ f.readline()
-            time.sleep(0.2) 
+            time.sleep(0.5) 
             print(log)
             conn.send(log)
 
