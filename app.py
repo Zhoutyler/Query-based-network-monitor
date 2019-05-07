@@ -18,23 +18,6 @@ r = redis.StrictRedis(
 
 
 def get_res(ts, kind, H, T):
-
-    '''
-    # FOR TESTING #
-    if kind == "2":
-        t = "1557156790"
-    elif kind == "5":
-        t = "1557186931"
-    elif kind == "1":
-        t = "1557121283"
-    elif kind == "4":
-        t = "1557121292"
-    elif kind == "3":
-        t = "1557189350"
-    elif kind == "6":
-        t = "aaaaaaaaaa"
-    ###############
-    '''
     key = "_".join([str(ts), kind, H, T])
     res = r.hgetall(key)
     return res
