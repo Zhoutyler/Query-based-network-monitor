@@ -1,9 +1,8 @@
 #!/usr/local/bin/python3.7
 from sqlfuncs.sql import *
-sc = SparkContext("local[6]", "myapp2")
+sc = SparkContext("local[6]", "myapp1")
 sc.setLogLevel("ERROR")
 ssc = StreamingContext(sc, 4)
-ssc.checkpoint("checkpoint_App1")
 
 words = ssc.socketTextStream("localhost", 9999)
 
