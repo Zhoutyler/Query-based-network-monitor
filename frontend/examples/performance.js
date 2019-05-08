@@ -64,20 +64,12 @@ function initGraphs() {
 		type: 'line',
 		data: {
 		// labels: xlabels,
-		datasets: [{	
-					label: "Latency",
-					data: tmp,
-					borderColor: "#f4d942",
-					fill: false,      // disable fill under line
-					yAxisID: "latency",
-					borderWidth: 5
-				},
+		datasets: [
 				{
 					label: "Throughput",
 					data: tmp2,
 					borderColor: "	#98f442",
 					fill: false,      // disable fill under line
-					yAxisID: "Throughput",
 					borderWidth: 5				
 				}]
 		},
@@ -97,18 +89,7 @@ function initGraphs() {
 						display: true,
 						labelString: "Latency",
 						fontSize: 15
-					},
-					position: "left",
-					id: "latency"
-				},
-				{
-					scaleLabel: {
-						display: true,
-						labelString: "Throughput",
-						fontSize: 15
-					},
-					position: "right",
-					id: "Throughput"
+					}
 				}
 				]
 		  },
