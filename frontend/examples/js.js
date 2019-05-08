@@ -9,7 +9,7 @@ var ips_H = []
 var BACKEND_IP = "127.0.0.1"
 var BACKEND_PORT = "5000"
 
-function predict(query_id, H, T, limit=200) {
+function predict(query_id, H, T, limit=1) {
 	if (limit == 0)
 		return
 	axios({
@@ -17,14 +17,11 @@ function predict(query_id, H, T, limit=200) {
       method: 'get',
   }).then(response => {
       console.log(response);
-      $('.out').remove()
-      if (jQuery.isEmptyObject(response['data'])) {
-          predict(query_id, H, T, limit-1)
-      }
-      else {
+      
+      
         prepareData(query_id, response)
 				renderGraph(query_id)	
-			}
+			
   } ).catch(error => {
       console.log(error)
   })
@@ -56,6 +53,7 @@ function renderGraph(query_id) {
 			title = "protocols_x_more_than_stddev"
 			ylabel = "bandwidth"
 			var ctx = $('#protocols_x_more_than_stddev').get(0).getContext('2d')
+			console.log(protocols_stddev)
 			renderBarGraph(ctx, ips_stddev, ylabel)
 			break
 		case 4:
@@ -74,6 +72,7 @@ function renderGraph(query_id) {
 			title = "ip_x_more_than_stddev"
 			ylabel = "bandwidth"
 			var ctx = $('#ip_x_more_than_stddev').get(0).getContext('2d')
+			console.log(protocols_stddev)
 			renderBarGraph(ctx, protocols_stddev, ylabel)
 			break
 	}
@@ -90,7 +89,7 @@ function zip(x, y) {
 
 // Refresh global graph data after querying backend
 function prepareData(query_id, response) {
-		switch(query_id) {
+		switch(Number(query_id)) {
 			case 1:
 				protocols_H = createDictData(response)
 				break
@@ -115,7 +114,10 @@ function prepareData(query_id, response) {
 // data convert to this form: [{text: "aa", size: 1}, {}, {}]
 function createDictData(response) {
 	tmp_list = []
+	console.log("response" + response)
+	console.log(response["data"])
 	for (var k in response["data"]){
+		console.log(k)
 		tmp_list.push({
 			text: k,
 			size: Number(response["data"][k])		
@@ -250,7 +252,6 @@ function initGraph() {
 	predict(1, 0.1, 15)
 	predict(4, 0.1, 15)
 	predict(6, 1, 15)
-	predict(3, 1, 15)
 	predict(3, 1, 15)
 }
 
